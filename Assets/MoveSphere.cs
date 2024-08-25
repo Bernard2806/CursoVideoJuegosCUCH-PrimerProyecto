@@ -24,10 +24,9 @@ public class MoveSphere : MonoBehaviour
     void Update()
     {
         // Obtiene los inputs para mover el Objeto
-        float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
 
-        Vector3 forceVector = new Vector3(h, 0, v);
+        Vector3 forceVector = new Vector3(0, 0, v);
         rb.AddForce(forceVector * force * Time.deltaTime);
 
         //Verificacion si esta en el Suelo
