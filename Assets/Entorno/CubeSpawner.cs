@@ -4,61 +4,77 @@ using UnityEngine;
 
 public class CubeSpawner : MonoBehaviour
 {
-    public GameObject cubePrefab;   // Prefab del cubo
-    public int maxCubes = 100;      // Número máximo de cubos a generar
-    public float spawnInterval = 1f; // Intervalo entre generaciones de cubos
-    public float spacing = 10f;     // Espacio entre cubos en la línea (mínimo 10)
-    public float minHeight = 0f;    // Altura mínima para los cubos
-    public float maxHeight = 5f;    // Altura máxima para los cubos
+        public GameObject platformPrefab; // Prefab de la plataforma
+    public int maxPlatforms = 15;     // Número máximo de plataformas a generar
+    public float spawnInterval = 1f;  // Intervalo entre generaciones de plataformas
+    public float minSpacing = 10f;    // Espacio mínimo entre plataformas
+    public float maxSpacing = 12f;    // Espacio máximo entre plataformas
+    public float minHeight = -2f;     // Altura mínima para las plataformas
+    public float maxHeight = 2f;      // Altura máxima para las plataformas
+    public float minHeightDifference = 1f; // Diferencia mínima en altura entre plataformas
 
     private float timer;
-    private int currentCubeCount = 0;  // Contador actual de cubos en la escena
-    private Vector3 startPosition;     // Posición inicial para generar la línea de cubos
+    private int currentPlatformCount = 0;  // Contador actual de plataformas en la escena
+    private Vector3 nextPosition;          // Posición para generar la siguiente plataforma
+    private float lastHeight;              // Altura de la última plataforma generada
 
     void Start()
     {
-        // Inicializa la posición de inicio
-        startPosition = transform.position;
+        // Inicializa la posición de la primera plataforma en la posición del objeto padre
+        nextPosition = transform.position;
+
+        // Genera la primera plataforma al inicio
+        SpawnPlatform();
     }
 
     void Update()
     {
         timer += Time.deltaTime;
-        if (timer >= spawnInterval && currentCubeCount < maxCubes)
+
+        if (timer >= spawnInterval && currentPlatformCount < maxPlatforms)
         {
-            SpawnCube();
+            SpawnPlatform();
             timer = 0f;
         }
     }
 
-    void SpawnCube()
+    void SpawnPlatform()
     {
-        // Calcula la posición del nuevo cubo en una línea recta
-        Vector3 spawnPosition = startPosition + Vector3.forward * (currentCubeCount * spacing);
+        // Genera la altura para la siguiente plataforma asegurando que haya una diferencia de altura suficiente
+        float randomHeight;
+        do
+        {
+            randomHeight = Random.Range(minHeight, maxHeight);
+        } while (Mathf.Abs(randomHeight - lastHeight) < minHeightDifference);
 
-        // Genera una altura aleatoria dentro del rango definido
-        float randomHeight = Random.Range(minHeight, maxHeight);
+        // Ajusta la posición en Y con la altura aleatoria
+        nextPosition.y = lastHeight + randomHeight;
 
-        // Ajusta la posición del cubo con la altura aleatoria
-        spawnPosition.y += randomHeight;
+        // Calcula el espaciado aleatorio asegurando que sea lo suficientemente lejos en el eje Z
+        float randomSpacing = Random.Range(minSpacing, maxSpacing);
+        nextPosition.z += randomSpacing;
 
-        // Instancia el cubo en la posición calculada
-        Instantiate(cubePrefab, spawnPosition, Quaternion.identity);
+        // Instancia la plataforma en la posición calculada
+        Instantiate(platformPrefab, nextPosition, Quaternion.identity);
 
-        currentCubeCount++;  // Incrementa el contador de cubos
+        // Actualiza la altura de la última plataforma generada
+        lastHeight = nextPosition.y;
+
+        // Incrementa el contador de plataformas
+        currentPlatformCount++;
     }
 
-    public void RemoveCube()
+    public void RemovePlatform()
     {
-        // Método para eliminar un cubo (puedes llamar a esto para reducir el conteo)
-        if (currentCubeCount > 0)
+        // Método para eliminar una plataforma (puedes llamar a esto para reducir el conteo)
+        if (currentPlatformCount > 0)
         {
-            // Encuentra el último cubo instanciado y destrúyelo
-            GameObject[] cubes = GameObject.FindGameObjectsWithTag("Cube");
-            if (cubes.Length > 0)
+            // Encuentra la última plataforma instanciada y destrúyela
+            GameObject[] platforms = GameObject.FindGameObjectsWithTag("Platform");
+            if (platforms.Length > 0)
             {
-                Destroy(cubes[cubes.Length - 1]);
-                currentCubeCount--;
+                Destroy(platforms[platforms.Length - 1]);
+                currentPlatformCount--;
             }
         }
     }
